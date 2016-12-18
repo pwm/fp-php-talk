@@ -14,7 +14,7 @@ $concat = curry('implode');
 // concat :: String -> String -> Bool
 $match = curry('preg_match');
 
-// head :: String -> String
+// head :: String -> Char
 $head = function (string $s): string { return $s[0]; };
 
 // isWord :: String -> Bool
