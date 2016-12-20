@@ -31,7 +31,7 @@ $o = function (callable $g, callable $f): Closure {
 $map = curry('array_map');
 
 // filter :: (a -> bool) -> [a] -> [a]
-$filter = curry(function (callable $f, array $a) {
+$filter = curry(function (callable $f, array $a): array {
     return array_filter($a, $f);
 });
 
