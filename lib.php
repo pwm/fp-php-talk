@@ -36,10 +36,10 @@ $filter = curry(function (callable $f, array $a): array {
 
 // foldl :: (a -> b -> a) -> a -> [b] -> a
 $foldl = curry(function (callable $f, $acc, $head, ...$tail) {
-    $list = count($tail) > 0
+    return array_reduce(count($tail) > 0
         ? array_merge([$head], $tail)
-        : $head;
-    return array_reduce($list, $f, $acc);
+        : $head,
+    $f, $acc);
 });
 
 // compose :: [a -> a] -> (a -> a)
