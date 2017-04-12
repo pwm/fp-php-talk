@@ -8,12 +8,11 @@ use ReflectionFunction;
 
 function curry(callable $fn, ...$args): Closure {
     return function (...$partialArgs) use ($fn, $args) {
-        $args = array_merge($args, $partialArgs);
-        $numRequiredArgs = (new ReflectionFunction($fn))
-            ->getNumberOfRequiredParameters();
-        return count($args) < $numRequiredArgs
-            ? curry($fn, ...$args)
-            : $fn(...$args);
+        return (function ($args) use ($fn) {
+            return count($args) < (new ReflectionFunction($fn))->getNumberOfRequiredParameters()
+                ? curry($fn, ...$args)
+                : $fn(...$args);
+        })(array_merge($args, $partialArgs));
     };
 }
 
@@ -21,11 +20,11 @@ function curry(callable $fn, ...$args): Closure {
 $id = function ($x) { return $x; };
 
 // o :: (b -> c) -> (a -> b) -> (a -> c)
-$o = function (callable $g, callable $f): Closure {
+$o = curry(function (callable $g, callable $f): Closure {
     return function ($x) use ($g, $f) {
         return $g($f($x));
     };
-};
+});
 
 // map :: (a -> b) -> [a] -> [b]
 $map = curry('array_map');
@@ -44,4 +43,4 @@ $foldl = curry(function (callable $f, $acc, $head, ...$tail) {
 });
 
 // compose :: [a -> a] -> (a -> a)
-$compose = $foldl($o, $id);
+$compose = $foldl($o)($id);

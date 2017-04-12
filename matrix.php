@@ -7,10 +7,10 @@ use function F\curry;
 // Int -> Int -> Int
 $plus = curry(function (int $x, int $y): int { return $x + $y; });
 
-assert($plus(1, 1) === 2);
+assert($plus(1)(1) === 2);
 
 // [Int] -> Int
-$sum = $foldl($plus, 0);
+$sum = $foldl($plus)(0);
 
 assert($sum([1, 2, 3, 4, 5]) === 15);
 
