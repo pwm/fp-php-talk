@@ -38,7 +38,7 @@ $Y = function ($f) {
 $foldr = $Y(function ($foldr) {
     return curry(function ($f, $v, $l) use ($foldr) {
         return count($l) > 0
-            ? $f(array_shift($l))($foldr($f)($v)($l))
+            ? $f($l[0])($foldr($f)($v)(array_slice($l, 1)))
             : $v;
     });
 });
