@@ -1,8 +1,5 @@
 <?php
-declare(strict_types = 1);
 require __DIR__.'/lib.php';
-
-use function F\curry;
 
 // slice :: String -> String -> [String]
 $slice = curry('explode');
@@ -20,11 +17,11 @@ $head = function (string $s): string { return $s[0]; };
 $isWord = $match('/[a-z]/i');
 
 // initials :: String -> String
-$initials = $compose(
+$initials = $compose([
     $concat(' '),
-    $map($compose('strtoupper', $head)),
+    $map($compose(['strtoupper', $head])),
     $filter($isWord),
     $slice(' ')
-);
+]);
 
 assert($initials('This is rather cool :)') === 'T I R C');

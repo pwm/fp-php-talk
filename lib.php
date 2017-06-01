@@ -1,46 +1,66 @@
 <?php
-declare(strict_types = 1);
 
-namespace F;
-
-use Closure;
-use ReflectionFunction;
-
-function curry(callable $fn, ...$args): Closure {
-    return function (...$partialArgs) use ($fn, $args) {
-        return (function ($args) use ($fn) {
-            return count($args) < (new ReflectionFunction($fn))->getNumberOfRequiredParameters()
-                ? curry($fn, ...$args)
-                : $fn(...$args);
+// Syntactic sugar so we don't have to manually write curried function definitions.
+// We still curry at function calls for the sake of authenticity.
+function curry($f, ...$args) {
+    return function (...$partialArgs) use ($f, $args) {
+        return (function ($args) use ($f) {
+            return count($args) < (new ReflectionFunction($f))->getNumberOfRequiredParameters()
+                ? curry($f, ...$args)
+                : $f(...$args);
         })(array_merge($args, $partialArgs));
     };
 }
 
-// id :: a -> a
+// The identity function
+// a -> a
 $id = function ($x) { return $x; };
 
-// o :: (b -> c) -> (a -> b) -> (a -> c)
-$o = curry(function (callable $g, callable $f): Closure {
+// Function composition operator aka. little circle
+// (b -> c) -> (a -> b) -> (a -> c)
+$o = curry(function ($g, $f) {
     return function ($x) use ($g, $f) {
         return $g($f($x));
     };
 });
 
-// map :: (a -> b) -> [a] -> [b]
-$map = curry('array_map');
+// The Y fixed point combinator in applicative-order form
+// It transforms "pseudo recursive" functions to recursive functions
+// λf.(λx.f (λv.x x v)) (λx.f (λv.x x v))
+$Y = function ($f) {
+    return
+        (function ($x) use ($f) { return $f(function ($v) use ($x) { return $x($x)($v); }); })
+        (function ($x) use ($f) { return $f(function ($v) use ($x) { return $x($x)($v); }); });
+};
 
-// filter :: (a -> bool) -> [a] -> [a]
-$filter = curry(function (callable $f, array $a): array {
-    return array_filter($a, $f);
+// Right fold, the "essence" of recursion on lists (made recursive via the Y combinator)
+// (a -> b -> b) -> b -> [a] -> b
+$foldr = $Y(function ($foldr) {
+    return curry(function ($f, $v, $l) use ($foldr) {
+        return count($l) > 0
+            ? $f(array_shift($l))($foldr($f)($v)($l))
+            : $v;
+    });
 });
 
-// foldl :: (a -> b -> a) -> a -> [b] -> a
-$foldl = curry(function (callable $f, $acc, $head, ...$tail) {
-    return array_reduce(count($tail) > 0
-        ? array_merge([$head], $tail)
-        : $head,
-    $f, $acc);
+// Map, expressed by foldr
+// (a -> b) -> [a] -> [b]
+$map = curry(function ($f, $l) use ($foldr) {
+    return $foldr
+    (curry(function ($x, $v) use ($f) { return array_merge([$f($x)], $v); }))
+    ([])
+    ($l);
 });
 
+// Filter, expressed by foldr
+// (a -> Bool) -> [a] -> [a]
+$filter = curry(function ($p, $l) use ($foldr) {
+    return $foldr
+    (curry(function ($x, $v) use ($p) { return $p($x) ? array_merge([$x], $v) : $v; }))
+    ([])
+    ($l);
+});
+
+// Composition of a list of functions
 // compose :: [a -> a] -> (a -> a)
-$compose = $foldl($o)($id);
+$compose = $foldr($o)($id);
