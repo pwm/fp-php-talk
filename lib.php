@@ -47,18 +47,18 @@ $foldr = $Y(function ($foldr) {
 // (a -> b) -> [a] -> [b]
 $map = curry(function ($f, $l) use ($foldr) {
     return $foldr
-    (curry(function ($x, $v) use ($f) { return array_merge([$f($x)], $v); }))
-    ([])
-    ($l);
+        (curry(function ($x, $v) use ($f) { return array_merge([$f($x)], $v); }))
+        ([])
+        ($l);
 });
 
 // Filter, expressed by foldr
 // (a -> Bool) -> [a] -> [a]
 $filter = curry(function ($p, $l) use ($foldr) {
     return $foldr
-    (curry(function ($x, $v) use ($p) { return $p($x) ? array_merge([$x], $v) : $v; }))
-    ([])
-    ($l);
+        (curry(function ($x, $v) use ($p) { return $p($x) ? array_merge([$x], $v) : $v; }))
+        ([])
+        ($l);
 });
 
 // Composition of a list of functions
