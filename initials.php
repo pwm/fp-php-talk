@@ -1,27 +1,17 @@
 <?php
 require __DIR__.'/lib.php';
 
-// slice :: String -> String -> [String]
-$slice = curry('explode');
+$explode = curry('explode');
+$implode = curry('implode');
+$match   = curry('preg_match');
+$head    = function ($s) { return $s[0]; };
+$isWord  = $match('/[a-z]/i');
 
-// concat :: String -> [String] -> String
-$concat = curry('implode');
-
-// concat :: String -> String -> Bool
-$match = curry('preg_match');
-
-// head :: String -> Char
-$head = function (string $s): string { return $s[0]; };
-
-// isWord :: String -> Bool
-$isWord = $match('/[a-z]/i');
-
-// initials :: String -> String
 $initials = $compose([
-    $concat(' '),
-    $map($compose(['strtoupper', $head])),
+    $implode(' '),
+    $map($o('strtoupper')($head)),
     $filter($isWord),
-    $slice(' ')
+    $explode(' ')
 ]);
 
 assert($initials('This is rather cool :)') === 'T I R C');
